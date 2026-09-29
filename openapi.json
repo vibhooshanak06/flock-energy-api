@@ -1,0 +1,880 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1/meters": {
+      "get": {
+        "operationId": "MetersController_list",
+        "summary": "List meters",
+        "description": "Returns a paginated list of meters. Use `q` to search by meter ID or serial number.",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (1-based)",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Results per page",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Free-text search — matched against meter ID and serial number",
+            "schema": {
+              "example": "J1001",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedMetersDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Portal unavailable"
+          }
+        },
+        "tags": [
+          "meters"
+        ]
+      }
+    },
+    "/api/v1/meters/{id}": {
+      "get": {
+        "operationId": "MetersController_findOne",
+        "summary": "Get meter detail",
+        "description": "Returns full detail for a single meter: nameplate data, 7-level network hierarchy, and GPS location.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Meter ID",
+            "schema": {
+              "example": "J100004",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeterDetailDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Meter not found"
+          },
+          "503": {
+            "description": "Portal unavailable"
+          }
+        },
+        "tags": [
+          "meters"
+        ]
+      }
+    },
+    "/api/v1/transformers": {
+      "get": {
+        "operationId": "TransformersController_list",
+        "summary": "List distribution transformers",
+        "description": "Returns a paginated list of distribution transformers (DTs).",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (1-based)",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Results per page",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedTransformersDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Portal unavailable"
+          }
+        },
+        "tags": [
+          "transformers"
+        ]
+      }
+    },
+    "/api/v1/meters/{meterId}/consumption": {
+      "get": {
+        "operationId": "ConsumptionController_getReadings",
+        "summary": "Get meter consumption readings",
+        "description": "Returns the available energy readings for a meter (up to ~337 half-hourly readings). kWh and kVAh are cumulative register values — subtract consecutive readings for interval consumption. Timestamps are ISO 8601 UTC (converted from portal local time, assumed IST/UTC+5:30).",
+        "parameters": [
+          {
+            "name": "meterId",
+            "required": true,
+            "in": "path",
+            "description": "Meter ID",
+            "schema": {
+              "example": "J100000",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumptionResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Meter not found"
+          },
+          "503": {
+            "description": "Portal unavailable"
+          }
+        },
+        "tags": [
+          "consumption"
+        ]
+      }
+    },
+    "/api/v1/network/hierarchy": {
+      "get": {
+        "operationId": "NetworkController_hierarchy",
+        "summary": "Get full network hierarchy tree",
+        "description": "Returns the complete 7-level hierarchy (Zone → Circle → Division → Subdivision → Substation → Feeder → DT) reconstructed from meter data, with meter counts at the DT level.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HierarchyTreeDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Portal unavailable"
+          }
+        },
+        "tags": [
+          "network"
+        ]
+      }
+    },
+    "/api/v1/network/export": {
+      "get": {
+        "operationId": "NetworkController_export",
+        "summary": "Bulk export all meters",
+        "description": "Returns all meters in a single response with full hierarchy and geo data. Useful for bulk ingestion, local indexing, or building derived datasets. Currently 403 meters — no pagination needed at this scale.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkExportDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Portal unavailable"
+          }
+        },
+        "tags": [
+          "network"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Urja Meter Ops API",
+    "description": "A clean REST API built over the Urja Meter Ops legacy portal.\n\n**Data available:** meter inventory (403 meters), distribution transformers (40 DTs), energy/consumption readings, GPS locations, and a 7-level network hierarchy.\n\n**Architecture note:** all data is proxied live from the upstream portal. Sessions are managed internally — API consumers need no portal credentials.",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "meters",
+      "description": "Meter inventory — list and individual meter detail"
+    },
+    {
+      "name": "consumption",
+      "description": "Energy readings for a meter"
+    },
+    {
+      "name": "transformers",
+      "description": "Distribution transformer inventory"
+    },
+    {
+      "name": "network",
+      "description": "Network hierarchy tree and bulk meter export"
+    }
+  ],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "MeterSummaryDto": {
+        "type": "object",
+        "properties": {
+          "meterId": {
+            "type": "string",
+            "example": "J100000"
+          },
+          "serialNo": {
+            "type": "string",
+            "example": "SE33962"
+          },
+          "make": {
+            "type": "string",
+            "example": "HPL"
+          },
+          "phaseType": {
+            "type": "string",
+            "example": "single",
+            "enum": [
+              "single",
+              "three"
+            ]
+          },
+          "installStatus": {
+            "type": "string",
+            "example": "Installed",
+            "enum": [
+              "Installed",
+              "Decommissioned",
+              "Faulty"
+            ]
+          },
+          "dtCode": {
+            "type": "string",
+            "example": "DT-001"
+          }
+        },
+        "required": [
+          "meterId",
+          "serialNo",
+          "make",
+          "phaseType",
+          "installStatus",
+          "dtCode"
+        ]
+      },
+      "PaginatedMetersDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MeterSummaryDto"
+            }
+          },
+          "total": {
+            "type": "number",
+            "example": 403
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 21
+          }
+        },
+        "required": [
+          "data",
+          "total",
+          "page",
+          "limit",
+          "totalPages"
+        ]
+      },
+      "HierarchyNodeDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Jaipur Zone 1"
+          },
+          "code": {
+            "type": "string",
+            "example": "Z-01"
+          }
+        },
+        "required": [
+          "name",
+          "code"
+        ]
+      },
+      "MeterHierarchyDto": {
+        "type": "object",
+        "properties": {
+          "zone": {
+            "$ref": "#/components/schemas/HierarchyNodeDto"
+          },
+          "circle": {
+            "$ref": "#/components/schemas/HierarchyNodeDto"
+          },
+          "division": {
+            "$ref": "#/components/schemas/HierarchyNodeDto"
+          },
+          "subdivision": {
+            "$ref": "#/components/schemas/HierarchyNodeDto"
+          },
+          "substation": {
+            "$ref": "#/components/schemas/HierarchyNodeDto"
+          },
+          "feeder": {
+            "$ref": "#/components/schemas/HierarchyNodeDto"
+          },
+          "dt": {
+            "$ref": "#/components/schemas/HierarchyNodeDto"
+          }
+        },
+        "required": [
+          "zone",
+          "circle",
+          "division",
+          "subdivision",
+          "substation",
+          "feeder",
+          "dt"
+        ]
+      },
+      "MeterGeoDto": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number",
+            "example": 26.938
+          },
+          "lng": {
+            "type": "number",
+            "example": 75.83
+          }
+        },
+        "required": [
+          "lat",
+          "lng"
+        ]
+      },
+      "MeterDetailDto": {
+        "type": "object",
+        "properties": {
+          "meterId": {
+            "type": "string",
+            "example": "J100000"
+          },
+          "serialNo": {
+            "type": "string",
+            "example": "SE33962"
+          },
+          "make": {
+            "type": "string",
+            "example": "HPL"
+          },
+          "phaseType": {
+            "type": "string",
+            "example": "single",
+            "enum": [
+              "single",
+              "three"
+            ]
+          },
+          "installStatus": {
+            "type": "string",
+            "example": "Installed",
+            "enum": [
+              "Installed",
+              "Decommissioned",
+              "Faulty"
+            ]
+          },
+          "dtCode": {
+            "type": "string",
+            "example": "DT-001"
+          },
+          "installType": {
+            "type": "string",
+            "example": "Whole Current",
+            "enum": [
+              "Whole Current",
+              "CT Operated"
+            ]
+          },
+          "build": {
+            "type": "string",
+            "example": "legacy",
+            "enum": [
+              "legacy",
+              "v2"
+            ]
+          },
+          "hierarchy": {
+            "$ref": "#/components/schemas/MeterHierarchyDto"
+          },
+          "geo": {
+            "$ref": "#/components/schemas/MeterGeoDto"
+          }
+        },
+        "required": [
+          "meterId",
+          "serialNo",
+          "make",
+          "phaseType",
+          "installStatus",
+          "dtCode",
+          "installType",
+          "build",
+          "hierarchy",
+          "geo"
+        ]
+      },
+      "TransformerDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "DT-001"
+          },
+          "name": {
+            "type": "string",
+            "example": "Malviya Nagar DT 1"
+          },
+          "feederCode": {
+            "type": "string",
+            "example": "F-001"
+          },
+          "capacityKva": {
+            "type": "number",
+            "example": 100
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "feederCode",
+          "capacityKva"
+        ]
+      },
+      "PaginatedTransformersDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransformerDto"
+            }
+          },
+          "total": {
+            "type": "number",
+            "example": 40
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 2
+          }
+        },
+        "required": [
+          "data",
+          "total",
+          "page",
+          "limit",
+          "totalPages"
+        ]
+      },
+      "ReadingDto": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "description": "Reading timestamp in ISO 8601 (converted from portal DD/MM/YYYY HH:mm, assumed IST/UTC+5:30)",
+            "example": "2026-06-23T18:00:00.000Z"
+          },
+          "kwh": {
+            "type": "number",
+            "description": "Cumulative active energy register (kWh). Subtract consecutive readings for interval consumption.",
+            "example": 48438.74
+          },
+          "kvah": {
+            "type": "number",
+            "description": "Cumulative apparent energy register (kVAh).",
+            "example": 52313.84
+          },
+          "voltR": {
+            "type": "number",
+            "description": "R-phase voltage at time of reading (V).",
+            "example": 226
+          }
+        },
+        "required": [
+          "timestamp",
+          "kwh",
+          "kvah"
+        ]
+      },
+      "ConsumptionResponseDto": {
+        "type": "object",
+        "properties": {
+          "meterId": {
+            "type": "string",
+            "example": "J100000"
+          },
+          "readings": {
+            "description": "Readings ordered oldest-first. kWh/kVAh are cumulative register values — compute delta between two readings to get interval consumption.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReadingDto"
+            }
+          },
+          "count": {
+            "type": "number",
+            "example": 337
+          }
+        },
+        "required": [
+          "meterId",
+          "readings",
+          "count"
+        ]
+      },
+      "DtNodeDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "DT-001"
+          },
+          "name": {
+            "type": "string",
+            "example": "Malviya Nagar DT 1"
+          },
+          "meterCount": {
+            "type": "number",
+            "example": 3
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "meterCount"
+        ]
+      },
+      "FeederNodeDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "F-001"
+          },
+          "name": {
+            "type": "string",
+            "example": "Feeder 1"
+          },
+          "dts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DtNodeDto"
+            }
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "dts"
+        ]
+      },
+      "SubstationNodeDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "SS-01"
+          },
+          "name": {
+            "type": "string",
+            "example": "Substation 1"
+          },
+          "feeders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeederNodeDto"
+            }
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "feeders"
+        ]
+      },
+      "SubdivisionNodeDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "SD-01"
+          },
+          "name": {
+            "type": "string",
+            "example": "Subdivision 1"
+          },
+          "substations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubstationNodeDto"
+            }
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "substations"
+        ]
+      },
+      "DivisionNodeDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "D-01"
+          },
+          "name": {
+            "type": "string",
+            "example": "Division 1"
+          },
+          "subdivisions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubdivisionNodeDto"
+            }
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "subdivisions"
+        ]
+      },
+      "CircleNodeDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "C-01"
+          },
+          "name": {
+            "type": "string",
+            "example": "Circle 1"
+          },
+          "divisions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DivisionNodeDto"
+            }
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "divisions"
+        ]
+      },
+      "ZoneNodeDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "Z-01"
+          },
+          "name": {
+            "type": "string",
+            "example": "Jaipur Zone 1"
+          },
+          "circles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CircleNodeDto"
+            }
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "circles"
+        ]
+      },
+      "HierarchyTreeDto": {
+        "type": "object",
+        "properties": {
+          "zones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ZoneNodeDto"
+            }
+          },
+          "totalMeters": {
+            "type": "number",
+            "example": 403
+          }
+        },
+        "required": [
+          "zones",
+          "totalMeters"
+        ]
+      },
+      "ExportMeterDto": {
+        "type": "object",
+        "properties": {
+          "meterId": {
+            "type": "string",
+            "example": "J100000"
+          },
+          "serialNo": {
+            "type": "string",
+            "example": "SE33962"
+          },
+          "make": {
+            "type": "string",
+            "example": "HPL"
+          },
+          "phaseType": {
+            "type": "string",
+            "example": "single"
+          },
+          "installStatus": {
+            "type": "string",
+            "example": "Decommissioned"
+          },
+          "installType": {
+            "type": "string",
+            "example": "Whole Current"
+          },
+          "build": {
+            "type": "string",
+            "example": "legacy",
+            "enum": [
+              "legacy",
+              "v2"
+            ]
+          },
+          "dtCode": {
+            "type": "string",
+            "example": "DT-001"
+          },
+          "hierarchy": {
+            "type": "object"
+          },
+          "geo": {
+            "type": "object",
+            "example": {
+              "lat": 26.938,
+              "lng": 75.83
+            }
+          }
+        },
+        "required": [
+          "meterId",
+          "serialNo",
+          "make",
+          "phaseType",
+          "installStatus",
+          "installType",
+          "build",
+          "dtCode",
+          "hierarchy",
+          "geo"
+        ]
+      },
+      "BulkExportDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportMeterDto"
+            }
+          },
+          "total": {
+            "type": "number",
+            "example": 403
+          }
+        },
+        "required": [
+          "data",
+          "total"
+        ]
+      }
+    }
+  }
+}
