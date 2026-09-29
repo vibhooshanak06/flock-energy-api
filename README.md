@@ -27,39 +27,38 @@ A single-page app with three views, all talking directly to the API above:
 
 ---
 
-**Map view** (`/`) — 403 meters on a live dark map, colour-coded by status
+**Map view** (`/`) — 403 meters across Jaipur, colour-coded by status
 
-![Map view — all 403 meters across Jaipur, coloured by installation status](docs/screenshots/map.png)
+![Map — 403 meters plotted across Jaipur coloured by installation status](docs/screenshots/map.png)
 
-- Pins colour-coded by status: green = Installed, amber = Faulty, slate = Decommissioned
-- Filter bar at the top toggles visibility by status with live counts
-- Click any pin → summary card slides up with meter ID, make, phase, status, hierarchy path
+- Pins colour-coded: green = Installed, amber = Faulty, slate = Decommissioned
+- Filter bar toggles visibility by status with live counts (238 / 90 / 75)
+- Click any pin → summary card with meter ID, make, status, hierarchy path
 - "View detail →" navigates to the meter detail view
 
 ---
 
-**Meter detail view** (`/meters/:id`) — consumption charts, nameplate, network position
+**Meter detail view** (`/meters/:id`) — charts, nameplate, network position
 
-![Meter detail — header, stats, and consumption area chart](docs/screenshots/meter-detail-top.png)
+![Meter detail — header, stats row, and consumption area chart](docs/screenshots/meter-detail-top.png)
 
-![Meter detail — voltage chart, nameplate table, and network hierarchy](docs/screenshots/meter-detail-bottom.png)
+![Meter detail — R-phase voltage chart, nameplate table, and network hierarchy](docs/screenshots/meter-detail-bottom.png)
 
-- Stats row: latest cumulative kWh, last-24h consumption (computed from register deltas), reading count
-- Consumption area chart — kWh per half-hour interval derived from cumulative register reads
+- Stats row: latest cumulative kWh, last-24h consumption, reading count
+- Consumption area chart — kWh per half-hour interval (computed from cumulative register reads)
 - R-phase voltage area chart over the same time window
-- Nameplate table: make, serial, phase, install type, build generation (`legacy` / `v2`)
-- Network position — indented 7-level hierarchy with codes
-- GPS coordinates with a Google Maps link
+- Nameplate: make, serial, phase, install type, build generation (`legacy` / `v2`)
+- 7-level network position with codes, GPS coords + Google Maps link
 
 ---
 
 **Network hierarchy view** (`/hierarchy`) — fully collapsible 7-level tree
 
-![Network hierarchy — collapsible tree from Zone down to DT with meter counts](docs/screenshots/hierarchy.png)
+![Network hierarchy — collapsible tree from Zone to DT with meter counts per node](docs/screenshots/hierarchy.png)
 
-- Zones → Circles → Divisions → Subdivisions → Substations → Feeders → DTs
-- Every node shows total meter count beneath it as a badge
-- Starts with zones expanded; click any node to drill down or collapse
+- Zone → Circle → Division → Subdivision → Substation → Feeder → DT
+- Badge on every node = total meters beneath it
+- 3 zones · 54 DTs · 403 meters
 
 ---
 
